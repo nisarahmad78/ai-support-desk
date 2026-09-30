@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Support Desk</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">AI</div>
+        <div>
+          <div class="brand-name">Support Desk</div>
+          <div class="brand-sub">AI auto-triage</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="dashboard">
+          <span class="nav-icon">&#9636;</span> Dashboard
+        </button>
+        <button class="nav-item" data-view="submit">
+          <span class="nav-icon">&#9998;</span> Submit a ticket
+        </button>
+      </nav>
+      <div class="sidebar-card">
+        <div class="sidebar-card-title">How it works</div>
+        <p>New tickets are classified by the AI triage engine - category,
+           priority, sentiment and a drafted reply - seconds after they
+           arrive.</p>
+      </div>
+      <div class="sidebar-footer">AI Support Desk &middot; Demo</div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Dashboard view -->
+      <section id="view-dashboard" class="view active">
+        <header class="page-head">
+          <div>
+            <h1>Ticket Dashboard</h1>
+            <p class="muted">Review AI-triaged tickets, edit the suggested reply, and resolve.</p>
+          </div>
+          <button id="refresh-btn" class="btn btn-ghost">Refresh</button>
+        </header>
+
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total tickets</div>
+            <div class="stat-value" id="stat-total">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Open</div>
+            <div class="stat-value accent-blue" id="stat-open">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Urgent + High</div>
+            <div class="stat-value accent-red" id="stat-urgent">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Resolved</div>
+            <div class="stat-value accent-green" id="stat-resolved">-</div>
+            <div class="stat-note" id="stat-rate"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg. sentiment</div>
+            <div class="stat-value" id="stat-sentiment">-</div>
+            <div class="stat-note">-1 negative &middot; +1 positive</div>
+          </div>
+        </div>
+
+        <div class="breakdown" id="breakdown"></div>
+
+        <div class="card">
+          <div class="filters">
+            <input type="search" id="filter-search" placeholder="Search tickets, customers...">
+            <select id="filter-status">
+              <option value="">All statuses</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+            <select id="filter-priority">
+              <option value="">All priorities</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <select id="filter-category">
+              <option value="">All categories</option>
+              <option value="billing">Billing</option>
+              <option value="technical">Technical</option>
+              <option value="account">Account</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+
+          <table class="ticket-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ticket</th>
+                <th>Customer</th>
+                <th>Category</th>
+                <th>Priority</th>
+                <th>Sentiment</th>
+                <th>Status</th>
+                <th>Assignee</th>
+                <th>Received</th>
+              </tr>
+            </thead>
+            <tbody id="ticket-rows">
+              <tr><td colspan="9" class="empty">Loading tickets...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Submit view (customer side demo) -->
+      <section id="view-submit" class="view">
+        <header class="page-head">
+          <div>
+            <h1>Contact Support</h1>
+            <p class="muted">This form simulates what a customer sees on the website. It posts to the public ticket endpoint - watch the dashboard triage it.</p>
+          </div>
+        </header>
+        <div class="card form-card">
+          <form id="submit-form">
+            <label>Your name
+              <input type="text" id="sub-name" placeholder="Jane Cooper">
+            </label>
+            <label>Email address *
+              <input type="email" id="sub-email" required placeholder="jane@company.com">
+            </label>
+            <label>Subject *
+              <input type="text" id="sub-title" required minlength="3" placeholder="What is this about?">
+            </label>
+            <label>Message *
+              <textarea id="sub-body" required minlength="5" rows="6"
+                placeholder="Describe your issue in as much detail as you can..."></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary">Submit ticket</button>
+            <p id="submit-result" class="submit-result"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Ticket detail drawer -->
+  <div id="drawer-overlay" class="drawer-overlay"></div>
+  <aside id="drawer" class="drawer">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-kicker" id="drawer-id">Ticket</div>
+        <h2 id="drawer-title">-</h2>
+      </div>
+      <button id="drawer-close" class="btn btn-ghost btn-small">Close</button>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-meta" id="drawer-meta"></div>
+      <p class="ticket-body" id="drawer-body"></p>
+    </div>
+
+    <div class="drawer-section ai-panel">
+      <div class="ai-panel-head">
+        <h3>AI Triage</h3>
+        <span class="badge badge-source" id="drawer-source"></span>
+      </div>
+      <div class="triage-grid" id="drawer-triage"></div>
+      <button id="retriage-btn" class="btn btn-ghost btn-small">Re-run triage</button>
+    </div>
+
+    <div class="drawer-section">
+      <h3>Suggested reply</h3>
+      <textarea id="drawer-reply" rows="10"></textarea>
+      <div class="drawer-row">
+        <label class="inline-label">Status
+          <select id="drawer-status">
+            <option value="open">Open</option>
+            <option value="in_progress">In progress</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        </label>
+        <label class="inline-label grow">Assignee
+          <input type="text" id="drawer-assignee" placeholder="Agent name">
+        </label>
+      </div>
+      <div class="drawer-actions">
+        <button id="save-btn" class="btn btn-ghost">Save changes</button>
+        <button id="send-btn" class="btn btn-primary">Send reply &amp; resolve</button>
+      </div>
+      <p id="drawer-sent" class="submit-result"></p>
+    </div>
+  </aside>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
