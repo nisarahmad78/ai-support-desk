@@ -4,6 +4,12 @@ A SaaS-style customer support system with **AI auto-triage**. Customers submit t
 
 The project is a complete full-stack build: a FastAPI backend, a SQL database, background processing, and a polished single-page agent dashboard. It runs end-to-end **with no paid API keys** - the built-in rule-based triage engine handles everything, and an LLM mode can be switched on with one environment variable.
 
+## Screenshots
+
+![AI Support Desk UI](docs/screenshot.png)
+
+The agent dashboard after seeding: stat cards for ticket volume, urgency, resolutions and average sentiment, plus the AI-triaged ticket list with category, priority, sentiment and status badges.
+
 ## Architecture
 
 ```mermaid
